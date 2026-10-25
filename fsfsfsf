@@ -1,0 +1,23 @@
+[33mcommit ecb070c044a2642fe827424280b9b9ca792e7533[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: EC2 Default User <ec2-user@ip-10-97-0-45.ap-northeast-2.compute.internal>
+Date:   Sun Oct 25 09:24:13 2026 +0000
+
+    add default yaml files
+
+[33mcommit 0682579c778d926d9f6c05a79237054f96acbf14[m
+Author: makingkook <makingkook@gmail.com>
+Date:   Thu Oct 22 22:00:33 2026 +0900
+
+    Add files via upload
+
+[33mcommit 48de3ecd178d442388eb0aaf080af294433f4a92[m
+Author: makingkook <makingkook@gmail.com>
+Date:   Thu Oct 22 22:00:03 2026 +0900
+
+    Add files via upload
+
+[33mcommit 9bbbbaf6f7eadf5a70ff2bbfbf923dfd7fd6bdca[m
+Author: EC2 Default User <ec2-user@ip-10-97-0-57.ap-northeast-2.compute.internal>
+Date:   Wed Oct 21 14:20:01 2026 +0000
+
+    add yaml file
