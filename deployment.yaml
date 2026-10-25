@@ -18,21 +18,38 @@ spec:
   template:
     metadata:
       labels:
-        app: book                     
+        app: book
     spec:
-      serviceAccountName: db
+      serviceAccountName: unicorn-app-sa
       nodeSelector:
         unicorn: app
+      terminationGracePeriodSeconds: 45        # 추가: graceful shutdown
       containers:
-        - name: book                  
+        - name: book
           image: 003150130236.dkr.ecr.ap-northeast-2.amazonaws.com/unicorn-concert-app:latest
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 8080
-          envFrom: 
-            - configMapRef: 
+          envFrom:
+            - configMapRef:
                 name: unicorn-config
+          livenessProbe:                       # 추가: 비정상 시 자동 재시작
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:                      # 추가: 준비 안 된 Pod에는 트래픽 안 보냄
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          lifecycle:                           # 추가: 종료 시 진행 중인 요청 처리
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 15"]
           resources:
             requests:
               cpu: 100m

@@ -12,12 +12,31 @@ iam:
 vpc:
   subnets:
     private:
-      ap-northeast-2a: { id: subnet-0439f486e440d5e81 }
-      ap-northeast-2b: { id: subnet-047d8bb4b01beaf9e }
-      ap-northeast-2c: { id: subnet-0562a2b3fcf5973a7 }
+      ap-northeast-2a: { id: subnet-065c6660595d0393e }
+      ap-northeast-2b: { id: subnet-0c95dc957d81f81ba }
+      ap-northeast-2c: { id: subnet-040a828935f7108e2 }
   clusterEndpoints:
     privateAccess: true
-    publicAccess: false
+    publicAccess: true   # 생성 후 false로 변경 (아래 명령)
+
+# 추가: Secrets 암호화 (Platform 키)
+secretsEncryption:
+  keyARN: arn:aws:kms:ap-northeast-2:003150130236:key/mrk-ef7a29c1cbd44ee398c1940ea015cffd
+
+# 추가: 클러스터 로그 5종 전부
+cloudWatch:
+  clusterLogging:
+    enableTypes: ["*"]
+
+# 추가: Pod Identity Agent, CoreDNS는 addon 노드에만
+addons:
+  - name: vpc-cni
+  - name: kube-proxy
+  - name: eks-pod-identity-agent
+  - name: coredns
+    configurationValues: |-
+      nodeSelector:
+        unicorn: addon
 
 managedNodeGroups:
   - name: unicorn-k8snode-app-ng
@@ -29,6 +48,10 @@ managedNodeGroups:
     privateNetworking: true
     labels:
       unicorn: app
+    volumeEncrypted: true                      # 추가: EBS 암호화
+    volumeKmsKeyID: arn:aws:kms:ap-northeast-2:003150130236:key/mrk-ef7a29c1cbd44ee398c1940ea015cffd         # 추가
+    preBootstrapCommands:                      # 추가: KST
+      - timedatectl set-timezone Asia/Seoul
 
   - name: unicorn-k8snode-addon-ng
     instanceType: t3.medium
@@ -39,3 +62,7 @@ managedNodeGroups:
     privateNetworking: true
     labels:
       unicorn: addon
+    volumeEncrypted: true                      # 추가
+    volumeKmsKeyID: arn:aws:kms:ap-northeast-2:003150130236:key/mrk-ef7a29c1cbd44ee398c1940ea015cffd         # 추가
+    preBootstrapCommands:                      # 추가
+      - timedatectl set-timezone Asia/Seoul
