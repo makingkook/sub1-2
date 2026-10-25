@@ -1,0 +1,86 @@
+# 사전 준비: bash prereq.sh  (Book App / Grafana Role, LBC 정책, 클러스터 로그 그룹)
+# 생성:     eksctl create cluster -f cluster.yaml
+# 생성 후:  eksctl utils update-cluster-vpc-config --cluster unicorn-eks-cluster \
+#             --public-access=false --private-access=true --approve
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: unicorn-eks-cluster
+  region: ap-northeast-2
+  version: "1.35"
+
+iam:
+  withOIDC: true
+  podIdentityAssociations:
+    # Book App → DynamoDB (Role은 prereq.sh 에서 이 클러스터 조건으로 생성)
+    - namespace: unicorn
+      serviceAccountName: unicorn-app-sa
+      roleARN: arn:aws:iam::003150130236:role/unicorn-book-app-role
+    # AWS Load Balancer Controller (TargetGroupBinding용)
+    - namespace: kube-system
+      serviceAccountName: aws-load-balancer-controller
+      createServiceAccount: true
+      permissionPolicyARNs:
+        - arn:aws:iam::003150130236:policy/AWSLoadBalancerControllerIAMPolicy
+    # Grafana → CloudWatch (ALB 응답 시간 패널)
+    - namespace: monitoring
+      serviceAccountName: unicorn-monitoring-grafana
+      roleARN: arn:aws:iam::003150130236:role/unicorn-grafana-role
+
+vpc:
+  subnets:
+    private:
+      ap-northeast-2a: { id: subnet-065c6660595d0393e }
+      ap-northeast-2b: { id: subnet-0c95dc957d81f81ba }
+      ap-northeast-2c: { id: subnet-040a828935f7108e2 }
+  clusterEndpoints:
+    privateAccess: true
+    publicAccess: true   # 노드 조인용. 생성 후 위 명령으로 false
+
+# Secrets 암호화 (Platform 키)
+secretsEncryption:
+  keyARN: arn:aws:kms:ap-northeast-2:003150130236:key/mrk-ef7a29c1cbd44ee398c1940ea015cffd
+
+# 클러스터 로그 5종 (로그 그룹은 prereq.sh 에서 Platform 키로 미리 생성)
+cloudWatch:
+  clusterLogging:
+    enableTypes: ["*"]
+
+addons:
+  - name: vpc-cni
+  - name: kube-proxy
+  - name: eks-pod-identity-agent
+  - name: coredns
+    configurationValues: |-
+      nodeSelector:
+        unicorn: addon
+
+managedNodeGroups:
+  - name: unicorn-k8snode-app-ng
+    instanceName: unicorn-k8snode-app-node
+    instanceType: t3.medium
+    desiredCapacity: 2
+    minSize: 2
+    maxSize: 2
+    privateNetworking: true
+    labels:
+      unicorn: app
+    volumeEncrypted: true
+    volumeKmsKeyID: arn:aws:kms:ap-northeast-2:003150130236:key/mrk-ef7a29c1cbd44ee398c1940ea015cffd
+    preBootstrapCommands:
+      - timedatectl set-timezone Asia/Seoul
+
+  - name: unicorn-k8snode-addon-ng
+    instanceType: t3.medium
+    instanceName: unicorn-k8snode-addon-node
+    desiredCapacity: 2
+    minSize: 2
+    maxSize: 2
+    privateNetworking: true
+    labels:
+      unicorn: addon
+    volumeEncrypted: true
+    volumeKmsKeyID: arn:aws:kms:ap-northeast-2:003150130236:key/mrk-ef7a29c1cbd44ee398c1940ea015cffd
+    preBootstrapCommands:
+      - timedatectl set-timezone Asia/Seoul

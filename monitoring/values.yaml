@@ -1,0 +1,51 @@
+# helm install unicorn-monitoring prometheus-community/kube-prometheus-stack \
+#   -n monitoring --create-namespace -f monitoring/values.yaml
+# <번호> 를 선수 등번호로 바꾸세요.
+
+# EKS 관리형 Control Plane: 노출되지 않는 컴포넌트 수집 끔 (채점 11-2: 0)
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeEtcd:
+  enabled: false
+kubeProxy:
+  enabled: false
+
+alertmanager:
+  enabled: false
+
+# 모든 Addon은 addon 노드에서 (node-exporter는 DaemonSet이라 전체 노드)
+prometheusOperator:
+  nodeSelector:
+    unicorn: addon
+  admissionWebhooks:
+    patch:
+      nodeSelector:
+        unicorn: addon
+
+prometheus:
+  prometheusSpec:
+    nodeSelector:
+      unicorn: addon
+    retention: 1d
+
+kube-state-metrics:
+  nodeSelector:
+    unicorn: addon
+
+grafana:
+  nodeSelector:
+    unicorn: addon
+  adminUser: "skills<번호>"
+  adminPassword: "HelloKrSkills!<번호>@"
+  serviceAccount:
+    name: unicorn-monitoring-grafana   # cluster.yaml Pod Identity 연결 대상
+  additionalDataSources:
+    - name: CloudWatch
+      type: cloudwatch
+      uid: cloudwatch
+      access: proxy
+      jsonData:
+        authType: default
+        defaultRegion: ap-northeast-2

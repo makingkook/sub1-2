@@ -1,0 +1,19 @@
+apiVersion: elbv2.k8s.aws/v1beta1
+kind: TargetGroupBinding
+metadata:
+  name: unicorn-book-tgb
+  namespace: unicorn
+spec:
+  serviceRef:
+    name: unicorn-book-app-svc
+    port: 80
+  targetGroupARN: arn:aws:elasticloadbalancing:ap-northeast-2:003150130236:targetgroup/unicorn-tg/cd6c68502547ff57
+  targetType: ip
+  networking:
+    ingress:
+      - from:
+          - securityGroup:
+              groupID: sg-0a1c585b2c1acef15
+        ports:
+          - protocol: TCP
+            port: 8080

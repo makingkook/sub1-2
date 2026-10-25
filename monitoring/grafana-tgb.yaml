@@ -1,0 +1,20 @@
+# unicorn-grafana-alb(Internet-facing) → unicorn-grafana-tg(IP 타입, 3000, health /api/health) → Grafana
+apiVersion: elbv2.k8s.aws/v1beta1
+kind: TargetGroupBinding
+metadata:
+  name: unicorn-grafana-tgb
+  namespace: monitoring
+spec:
+  serviceRef:
+    name: unicorn-monitoring-grafana
+    port: 80
+  targetGroupARN: <UNICORN_GRAFANA_TG_ARN>
+  targetType: ip
+  networking:
+    ingress:
+      - from:
+          - securityGroup:
+              groupID: <UNICORN_GRAFANA_ALB_SG_ID>
+        ports:
+          - protocol: TCP
+            port: 3000
