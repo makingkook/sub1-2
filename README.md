@@ -1,3 +1,4 @@
+https://scandalous-mushroom-080.notion.site/EKS-Not-Gin-404c14668e7580caacddcad6a1a30249
 # k8s — Book App + Grafana 배포
 
 eksctl로 클러스터를 만들고, ALB/TG는 AWS에서 직접 만든 뒤 **AWS Load Balancer Controller의 TargetGroupBinding**으로 Pod를 TG에 연결하는 방식입니다. Ingress는 쓰지 않습니다.
